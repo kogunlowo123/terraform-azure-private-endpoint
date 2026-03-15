@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture -- terraform-azure-private-endpoint</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b0c0b;color:#f5f2eb;font-family:'SF Mono','Cascadia Code','Fira Code',monospace;line-height:1.7;padding:0}
+a{color:#c8420a;text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:2rem}
+h1,h2,h3{color:#f5f2eb;margin-bottom:1rem}
+h1{font-size:2rem;border-bottom:3px solid #c8420a;padding-bottom:.5rem;margin-bottom:2rem}
+h2{font-size:1.4rem;border-bottom:1px solid #333;padding-bottom:.4rem;margin-top:2.5rem}
+h3{font-size:1.1rem;color:#c8420a}
+.badge{display:inline-block;background:#0078d4;color:#fff;padding:4px 14px;border-radius:4px;font-size:.75rem;font-weight:700;margin-right:8px;letter-spacing:.5px}
+.badge-accent{background:#c8420a}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}
+.card{background:#161816;border:1px solid #222;border-radius:8px;padding:1.2rem}
+.card h3{margin-bottom:.5rem;font-size:.95rem}
+.card p{font-size:.82rem;color:#bbb}
+.card .num{font-size:1.8rem;color:#c8420a;font-weight:700}
+.arch-diagram{background:#121312;border:1px solid #333;border-radius:8px;padding:2rem;margin:1.5rem 0;overflow-x:auto}
+.box{background:#1a1b1a;border:2px solid #c8420a;border-radius:6px;padding:.7rem 1.2rem;text-align:center;font-size:.8rem;min-width:110px;display:inline-block}
+.box.blue{border-color:#0078d4;color:#7ec8f0}
+.box.green{border-color:#3f8624;color:#7fba00}
+.box.red{border-color:#dd344c;color:#ff6b7a}
+.box.purple{border-color:#8c4fff;color:#b4a0ff}
+.box.orange{border-color:#ff9900;color:#ffb84d}
+.arrow{color:#555;font-size:1.2rem}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:#1a1b1a;color:#c8420a;text-align:left;padding:.6rem .8rem;border-bottom:2px solid #333}
+td{padding:.5rem .8rem;border-bottom:1px solid #1e1f1e}
+tr:hover td{background:#161816}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:.4rem 0;font-size:.85rem}
+.checklist li::before{content:"[ ] ";color:#c8420a;font-weight:700}
+.checklist li.done::before{content:"[x] ";color:#3f8624}
+code{background:#1a1b1a;padding:2px 6px;border-radius:3px;font-size:.82rem}
+pre{background:#121312;border:1px solid #333;border-radius:6px;padding:1rem;overflow-x:auto;font-size:.8rem;margin:1rem 0}
+.section{margin:2rem 0}
+.footer{border-top:1px solid #333;padding-top:1.5rem;margin-top:3rem;text-align:center;font-size:.75rem;color:#666}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+.flow-row{display:flex;align-items:center;justify-content:center;gap:.4rem;margin:.5rem 0;flex-wrap:wrap}
+.flow-col{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="margin-bottom:1rem">
+<span class="badge">Microsoft Azure</span>
+<span class="badge badge-accent">Terraform Module</span>
+<span class="badge" style="background:#333">Networking</span>
+</div>
+
+<h1>terraform-azure-private-endpoint</h1>
+
+<div class="section">
+<h2>Executive Summary</h2>
+<p>Production-ready Terraform module for deploying Azure Private Endpoints with comprehensive support for private DNS zones, DNS zone virtual network links, custom A records, Private Link Services with NAT IP configuration, static IP assignment, custom NIC naming, auto and manual connection approval workflows, and cross-subscription/cross-tenant connectivity. Serves as the foundational networking module for zero-trust Azure architectures.</p>
+</div>
+
+<div class="section">
+<h2>Overview</h2>
+<div class="cards">
+<div class="card"><div class="num">5</div><h3>Resource Types</h3><p>Endpoints, DNS Zones, VNet Links, A Records, PLS</p></div>
+<div class="card"><div class="num">6</div><h3>Variables</h3><p>Composable map-based inputs</p></div>
+<div class="card"><div class="num">11</div><h3>Outputs</h3><p>IDs, IPs, FQDNs, aliases</p></div>
+<div class="card"><div class="num">3</div><h3>Examples</h3><p>Basic, Advanced, Complete</p></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Architecture Diagram</h2>
+<div class="arch-diagram">
+<div class="flow-col">
+<div class="flow-row">
+<div class="box blue" style="min-width:250px">Private Endpoint Module</div>
+</div>
+<div class="arrow" style="display:block;text-align:center">|</div>
+<div class="flow-row">
+<div style="border:2px solid #0078d4;border-radius:8px;padding:1rem;margin:.3rem">
+<div style="color:#7ec8f0;font-weight:700;text-align:center;margin-bottom:.5rem">Private Endpoints</div>
+<div class="flow-row">
+<div class="box blue">Service Connection<br><small>Auto / Manual</small></div>
+<div class="box blue">DNS Zone Group</div>
+<div class="box purple">IP Configuration<br><small>Static IP</small></div>
+<div class="box purple">Custom NIC Name</div>
+</div>
+</div>
+</div>
+<div class="flow-row">
+<div style="border:2px solid #3f8624;border-radius:8px;padding:1rem;margin:.3rem">
+<div style="color:#7fba00;font-weight:700;text-align:center;margin-bottom:.5rem">Private DNS Zones</div>
+<div class="flow-row">
+<div class="box green">DNS Zone<br><small>SOA Record Config</small></div>
+<div class="box green">VNet Links<br><small>Auto-Registration</small></div>
+<div class="box green">A Records<br><small>Custom DNS</small></div>
+</div>
+</div>
+</div>
+<div class="flow-row">
+<div style="border:2px solid #ff9900;border-radius:8px;padding:1rem;margin:.3rem">
+<div style="color:#ffb84d;font-weight:700;text-align:center;margin-bottom:.5rem">Private Link Services</div>
+<div class="flow-row">
+<div class="box orange">NAT IP Config</div>
+<div class="box orange">Load Balancer<br>Integration</div>
+<div class="box orange">Auto-Approval</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>Component Breakdown</h2>
+<div class="table-wrap">
+<table>
+<tr><th>Resource</th><th>Purpose</th></tr>
+<tr><td><code>azurerm_private_endpoint</code></td><td>Private service connection to any Azure PaaS or Private Link Service with DNS zone groups and static IPs</td></tr>
+<tr><td><code>azurerm_private_dns_zone</code></td><td>Private DNS zones with configurable SOA records for name resolution</td></tr>
+<tr><td><code>azurerm_private_dns_zone_virtual_network_link</code></td><td>Link DNS zones to VNets with optional auto-registration</td></tr>
+<tr><td><code>azurerm_private_dns_a_record</code></td><td>Custom A records for manual DNS entries</td></tr>
+<tr><td><code>azurerm_private_link_service</code></td><td>Expose services via Private Link with NAT IP and load balancer frontend</td></tr>
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Data Flow</h2>
+<div class="arch-diagram">
+<div class="flow-row">
+<div class="box purple">Consumer VNet</div>
+<div class="arrow">&rarr;</div>
+<div class="box blue">Private Endpoint<br><small>NIC in Subnet</small></div>
+<div class="arrow">&rarr;</div>
+<div class="box green">Private DNS Zone<br><small>FQDN Resolution</small></div>
+<div class="arrow">&rarr;</div>
+<div class="box orange">Azure PaaS Service<br><small>or Private Link Service</small></div>
+</div>
+</div>
+<p style="font-size:.85rem;color:#bbb;margin-top:.5rem"><strong>1.</strong> Consumer resolves service FQDN via private DNS zone linked to VNet. <strong>2.</strong> DNS returns private IP of the private endpoint NIC. <strong>3.</strong> Traffic flows within the VNet through the private endpoint NIC. <strong>4.</strong> Private service connection routes to the target PaaS resource or Private Link Service. <strong>5.</strong> For PLS scenarios, NAT IP configuration maps to the load balancer backend.</p>
+</div>
+
+<div class="section">
+<h2>Security Controls</h2>
+<div class="grid-2">
+<div class="card">
+<h3>Network Isolation</h3>
+<p>- All traffic stays within Azure backbone<br>- No public IP exposure for connected services<br>- Subnet-level placement of endpoint NICs<br>- Cross-subscription and cross-tenant support</p>
+</div>
+<div class="card">
+<h3>Access Control</h3>
+<p>- Auto-approved connections (trusted resources)<br>- Manual approval workflows (external consumers)<br>- Visibility and auto-approval subscription lists<br>- Proxy protocol support for PLS</p>
+</div>
+<div class="card">
+<h3>DNS Security</h3>
+<p>- Private DNS zones prevent DNS leakage<br>- VNet-linked zones for resolution scope<br>- Custom A records for override scenarios<br>- SOA record customization</p>
+</div>
+<div class="card">
+<h3>IP Management</h3>
+<p>- Static IP assignment for private endpoints<br>- Custom NIC naming for governance<br>- NAT IP configuration for PLS<br>- IPv4 addressing support</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>Industry Adaptation</h2>
+<div class="cards">
+<div class="card"><h3>Enterprise Networking</h3><p>Centralized private endpoint management for Storage, SQL, Key Vault, with DNS zones linked to hub VNet</p></div>
+<div class="card"><h3>Multi-Tenant SaaS</h3><p>Private Link Services to expose SaaS backends, auto-approval for managed tenants, manual approval for external</p></div>
+<div class="card"><h3>Financial Services</h3><p>Static IP endpoints for firewall allowlisting, cross-subscription connectivity, full DNS zone management</p></div>
+<div class="card"><h3>Government</h3><p>Zero-trust networking with no public endpoints, private DNS for all PaaS services, audit via custom NIC naming</p></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Production Readiness Checklist</h2>
+<ul class="checklist">
+<li class="done">Private DNS zones created for all target service types</li>
+<li class="done">DNS zones linked to consumer VNets</li>
+<li class="done">DNS zone groups configured on private endpoints</li>
+<li class="done">Validation: resource ID or alias specified for each endpoint</li>
+<li>Link DNS zones to hub VNet for hub-spoke resolution</li>
+<li>Configure static IPs for endpoints requiring firewall rules</li>
+<li>Set up Private Link Services for internal service exposure</li>
+<li>Review auto-approval subscription lists</li>
+<li>Verify DNS resolution from consumer VNets</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>Configuration Reference</h2>
+<div class="table-wrap">
+<table>
+<tr><th>Variable</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>private_endpoints</code></td><td>map(object)</td><td>{}</td><td>Endpoints with service connections, DNS groups, IPs</td></tr>
+<tr><td><code>private_dns_zones</code></td><td>map(object)</td><td>{}</td><td>DNS zones with SOA record config</td></tr>
+<tr><td><code>dns_zone_virtual_network_links</code></td><td>map(object)</td><td>{}</td><td>VNet links for DNS zones</td></tr>
+<tr><td><code>dns_a_records</code></td><td>map(object)</td><td>{}</td><td>Custom DNS A records</td></tr>
+<tr><td><code>private_link_services</code></td><td>map(object)</td><td>{}</td><td>Private Link Services with NAT config</td></tr>
+<tr><td><code>default_tags</code></td><td>map(string)</td><td>{}</td><td>Default tags for all resources</td></tr>
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Deployment</h2>
+<pre>
+terraform init
+terraform plan -var-file="endpoints.tfvars"
+terraform apply -var-file="endpoints.tfvars"
+
+# Verify private endpoint
+az network private-endpoint show --name pe-storage-blob --resource-group rg-myapp
+# Check DNS resolution
+az network private-dns zone show --name privatelink.blob.core.windows.net --resource-group rg-myapp
+</pre>
+</div>
+
+<div class="section">
+<h2>Links</h2>
+<p>
+<a href="https://learn.microsoft.com/en-us/azure/private-link/">Azure Private Link Documentation</a> |
+<a href="https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview">Private Endpoint Overview</a> |
+<a href="../examples/basic/">Basic Example</a> |
+<a href="../examples/complete/">Complete Example</a>
+</p>
+</div>
+
+<div class="footer">
+<p>terraform-azure-private-endpoint &mdash; Architecture Document</p>
+<p>Generated on 2026-03-15 &bull; Terraform &ge; 1.3.0 &bull; AzureRM &ge; 3.80.0</p>
+<p style="margin-top:.5rem"><span class="badge">Microsoft Azure</span> Verified Module Architecture</p>
+</div>
+
+</div>
+</body>
+</html>
