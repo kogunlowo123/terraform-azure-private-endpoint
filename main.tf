@@ -1,7 +1,3 @@
-###############################################################################
-# Private DNS Zones
-###############################################################################
-
 resource "azurerm_private_dns_zone" "this" {
   for_each = var.private_dns_zones
 
@@ -20,28 +16,20 @@ resource "azurerm_private_dns_zone" "this" {
     }
   }
 
-  tags = merge(local.merged_default_tags, each.value.tags)
+  tags = merge(var.default_tags, each.value.tags)
 }
-
-###############################################################################
-# Private DNS Zone Virtual Network Links
-###############################################################################
 
 resource "azurerm_private_dns_zone_virtual_network_link" "this" {
   for_each = var.dns_zone_virtual_network_links
 
   name                  = each.value.name
   resource_group_name   = each.value.resource_group_name
-  private_dns_zone_name = local.dns_zone_link_zone_names[each.key]
+  private_dns_zone_name = each.value.private_dns_zone_key != null ? azurerm_private_dns_zone.this[each.value.private_dns_zone_key].name : each.value.private_dns_zone_name
   virtual_network_id    = each.value.virtual_network_id
   registration_enabled  = each.value.registration_enabled
 
-  tags = merge(local.merged_default_tags, each.value.tags)
+  tags = merge(var.default_tags, each.value.tags)
 }
-
-###############################################################################
-# Private DNS A Records
-###############################################################################
 
 resource "azurerm_private_dns_a_record" "this" {
   for_each = var.dns_a_records
@@ -52,23 +40,19 @@ resource "azurerm_private_dns_a_record" "this" {
   ttl                 = each.value.ttl
   records             = each.value.records
 
-  tags = merge(local.merged_default_tags, each.value.tags)
+  tags = merge(var.default_tags, each.value.tags)
 }
-
-###############################################################################
-# Private Link Services
-###############################################################################
 
 resource "azurerm_private_link_service" "this" {
   for_each = var.private_link_services
 
-  name                           = each.value.name
-  resource_group_name            = each.value.resource_group_name
-  location                       = each.value.location
-  auto_approval_subscription_ids = each.value.auto_approval_subscription_ids
-  visibility_subscription_ids    = each.value.visibility_subscription_ids
-  enable_proxy_protocol          = each.value.enable_proxy_protocol
-  fqdns                          = each.value.fqdns
+  name                                        = each.value.name
+  resource_group_name                         = each.value.resource_group_name
+  location                                    = each.value.location
+  auto_approval_subscription_ids              = each.value.auto_approval_subscription_ids
+  visibility_subscription_ids                 = each.value.visibility_subscription_ids
+  enable_proxy_protocol                       = each.value.enable_proxy_protocol
+  fqdns                                       = each.value.fqdns
   load_balancer_frontend_ip_configuration_ids = each.value.load_balancer_frontend_ip_configuration_ids
 
   dynamic "nat_ip_configuration" {
@@ -82,12 +66,8 @@ resource "azurerm_private_link_service" "this" {
     }
   }
 
-  tags = merge(local.merged_default_tags, each.value.tags)
+  tags = merge(var.default_tags, each.value.tags)
 }
-
-###############################################################################
-# Private Endpoints
-###############################################################################
 
 resource "azurerm_private_endpoint" "this" {
   for_each = var.private_endpoints
@@ -125,5 +105,5 @@ resource "azurerm_private_endpoint" "this" {
     }
   }
 
-  tags = merge(local.merged_default_tags, each.value.tags)
+  tags = merge(var.default_tags, each.value.tags)
 }

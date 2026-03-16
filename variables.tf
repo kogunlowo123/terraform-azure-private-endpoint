@@ -77,13 +77,13 @@ variable "dns_zone_virtual_network_links" {
 variable "dns_a_records" {
   description = "Map of DNS A records to create in private DNS zones."
   type = map(object({
-    name                  = string
-    resource_group_name   = string
-    zone_name             = optional(string, null)
-    zone_key              = optional(string, null)
-    ttl                   = optional(number, 300)
-    records               = list(string)
-    tags                  = optional(map(string), {})
+    name                = string
+    resource_group_name = string
+    zone_name           = optional(string, null)
+    zone_key            = optional(string, null)
+    ttl                 = optional(number, 300)
+    records             = list(string)
+    tags                = optional(map(string), {})
   }))
   default = {}
 }
@@ -91,14 +91,14 @@ variable "dns_a_records" {
 variable "private_link_services" {
   description = "Map of private link services to create."
   type = map(object({
-    name                           = string
-    resource_group_name            = string
-    location                       = string
+    name                                        = string
+    resource_group_name                         = string
+    location                                    = string
     load_balancer_frontend_ip_configuration_ids = list(string)
-    auto_approval_subscription_ids = optional(list(string), [])
-    visibility_subscription_ids    = optional(list(string), [])
-    enable_proxy_protocol          = optional(bool, false)
-    fqdns                          = optional(list(string), [])
+    auto_approval_subscription_ids              = optional(list(string), [])
+    visibility_subscription_ids                 = optional(list(string), [])
+    enable_proxy_protocol                       = optional(bool, false)
+    fqdns                                       = optional(list(string), [])
 
     nat_ip_configuration = list(object({
       name                       = string

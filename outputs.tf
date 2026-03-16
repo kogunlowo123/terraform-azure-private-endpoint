@@ -10,9 +10,7 @@ output "private_endpoint_ip_addresses" {
 
 output "private_endpoint_fqdns" {
   description = "Map of private endpoint keys to their custom DNS configurations."
-  value = {
-    for k, v in azurerm_private_endpoint.this : k => v.custom_dns_configs
-  }
+  value       = { for k, v in azurerm_private_endpoint.this : k => v.custom_dns_configs }
 }
 
 output "private_endpoint_network_interfaces" {
