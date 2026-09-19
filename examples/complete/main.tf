@@ -90,12 +90,12 @@ module "private_endpoint" {
       name                = "privatelink.blob.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
       soa_record = {
-        email       = "azureprivatedns-host.microsoft.com"
-        expire_time = 2419200
-        minimum_ttl = 10
+        email        = "azureprivatedns-host.microsoft.com"
+        expire_time  = 2419200
+        minimum_ttl  = 10
         refresh_time = 3600
-        retry_time  = 300
-        ttl         = 3600
+        retry_time   = 300
+        ttl          = 3600
       }
     }
     "vault" = {
