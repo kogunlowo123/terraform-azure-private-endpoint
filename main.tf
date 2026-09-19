@@ -1,3 +1,11 @@
+data "azurerm_client_config" "current" {}
+
+locals {
+  # Zones referenced by name (not created by this module) are addressed by
+  # resource ID, as azurerm 5.x resources take private_dns_zone_id.
+  external_zone_id_prefix = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups"
+}
+
 resource "azurerm_private_dns_zone" "this" {
   for_each = var.private_dns_zones
 
@@ -22,11 +30,10 @@ resource "azurerm_private_dns_zone" "this" {
 resource "azurerm_private_dns_zone_virtual_network_link" "this" {
   for_each = var.dns_zone_virtual_network_links
 
-  name                  = each.value.name
-  resource_group_name   = each.value.resource_group_name
-  private_dns_zone_name = each.value.private_dns_zone_key != null ? azurerm_private_dns_zone.this[each.value.private_dns_zone_key].name : each.value.private_dns_zone_name
-  virtual_network_id    = each.value.virtual_network_id
-  registration_enabled  = each.value.registration_enabled
+  name                 = each.value.name
+  private_dns_zone_id  = each.value.private_dns_zone_key != null ? azurerm_private_dns_zone.this[each.value.private_dns_zone_key].id : "${local.external_zone_id_prefix}/${each.value.resource_group_name}/providers/Microsoft.Network/privateDnsZones/${each.value.private_dns_zone_name}"
+  virtual_network_id   = each.value.virtual_network_id
+  registration_enabled = each.value.registration_enabled
 
   tags = merge(var.default_tags, each.value.tags)
 }
@@ -35,8 +42,7 @@ resource "azurerm_private_dns_a_record" "this" {
   for_each = var.dns_a_records
 
   name                = each.value.name
-  zone_name           = each.value.zone_key != null ? azurerm_private_dns_zone.this[each.value.zone_key].name : each.value.zone_name
-  resource_group_name = each.value.resource_group_name
+  private_dns_zone_id = each.value.zone_key != null ? azurerm_private_dns_zone.this[each.value.zone_key].id : "${local.external_zone_id_prefix}/${each.value.resource_group_name}/providers/Microsoft.Network/privateDnsZones/${each.value.zone_name}"
   ttl                 = each.value.ttl
   records             = each.value.records
 
@@ -51,7 +57,7 @@ resource "azurerm_private_link_service" "this" {
   location                                    = each.value.location
   auto_approval_subscription_ids              = each.value.auto_approval_subscription_ids
   visibility_subscription_ids                 = each.value.visibility_subscription_ids
-  enable_proxy_protocol                       = each.value.enable_proxy_protocol
+  proxy_protocol_enabled                      = each.value.enable_proxy_protocol
   fqdns                                       = each.value.fqdns
   load_balancer_frontend_ip_configuration_ids = each.value.load_balancer_frontend_ip_configuration_ids
 
